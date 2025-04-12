@@ -1,7 +1,8 @@
 let APIKEY = "e18b15d2";
 let searchInput = document.getElementById("searchInput");
 let searchButton = document.getElementById("searchBtn");  //to get the search button element
-
+let favourites = document.getElementById("favourites"); //to get the favourites button element
+let jsonData;
 
 //"Fat arrow" functions, also known as arrow functions, are a concise way to define functions in JavaScript introduced in ES6, using the => operator, allowing for shorter syntax and lexical scoping of this. 
 const getData = async (movie) => {
@@ -9,7 +10,7 @@ const getData = async (movie) => {
     let fetchData = await fetch(`https://www.omdbapi.com/?apikey=${APIKEY}&t=${movie}`);
 
     //fetching data from the API using the search input value
-    let jsonData = await fetchData.json();
+    jsonData = await fetchData.json();
     console.log(jsonData);
 
 
@@ -17,25 +18,29 @@ const getData = async (movie) => {
 
     searchInput.value = ""; //clearing the search input field
 
+    createCard(jsonData); //calling the createCard function to display the movie data
 
+ 
+//     let div = document.createElement("div"); //creating a new div element to display the movie data
+//    div.classList.add("moviecard")       //adding a class to the div element for styling..
+// div.innerHTML=`
+//          <img src=${jsonData.Poster} alt="">
+//          <div class="cardText">     <!-- adding a class to the div element for styling.. -->
+//              <h1>${jsonData.Title}</h1>
+//               <p class ="rating" >Ratings :<span>${jsonData.Ratings[0].Value}</p>   <!--/getting the rating value from the API response -->
+//               <a href="">${jsonData.Genre}</a><br>  
+//                <p>Released Date :<span>${jsonData.Released}</span></p>
+//                <p>Writer :<span>${jsonData.Writer}</span></p>
+//                <p>Description :<span>${jsonData.Plot}</span></p>
+//                <p>Total Time :<span>${jsonData.Runtime}</span></p>
+//                <p>Released Year : <span>${jsonData.Year}</span></p> 
+//                <button  onClick="addtofav()" id ="favBtn"> Add to favourite </button>
+//                <button  onClick="removefromfav()" id ="favBtn"> Remove from favourite </button>
+               
 
-    let div = document.createElement("div"); //creating a new div element to display the movie data
-   div.classList.add("moviecard")       //adding a class to the div element for styling..
-div.innerHTML=`
-         <img src=${jsonData.Poster} alt="">
-         <div class="cardText">     <!-- adding a class to the div element for styling.. -->
-             <h1>${jsonData.Title}</h1>
-              <p class ="rating" >Ratings :<span>${jsonData.Ratings[0].Value}</p>   <!--/getting the rating value from the API response -->
-              <a href="">${jsonData.Genre}</a><br>  
-               <p>Released Date :<span>${jsonData.Released}</span></p>
-               <p>Writer :<span>${jsonData.Writer}</span></p>
-               <p>Description :<span>${jsonData.Plot}</span></p>
-               <p>Total Time :<span>${jsonData.Runtime}</span></p>
-               <p>Released Year : <span>${jsonData.Year}</span></p> 
-
-   </div>
-`
-document.querySelector(".card").appendChild(div) ; //appending the new div element to the card class in the HTML document
+//    </div>
+// `
+// document.querySelector(".card").appendChild(div) ; //appending the new div element to the card class in the HTML document
    
     }
     catch (error) {
@@ -72,4 +77,83 @@ searchButton.addEventListener("click", function () {
         //alerting the user to enter a movie name
     }
     })
+function addtofav()
+{
+    let movieArr = JSON.parse(localStorage.getItem("movie")) || [];
+    
+    //getting the movie data from local storage or initializing it to an empty array if it doesn't exist
+    isPresent = movieArr.some((movie) => movie.imdbID === jsonData.imdbID); //checking if the movie is already in the favourites list
+    if (isPresent) {
+        alert("Movie already in favourites"); //alerting the user that the movie is already in favourites
+        return;
+    }
 
+
+    movieArr.push(jsonData); //adding the new movie data to the array
+    localStorage.setItem("movie", JSON.stringify(movieArr)); //storing the updated movie data in local storage
+ //   localStorage.setItem("movie", JSON.stringify(jsonData)); //storing the movie data in local storage
+    alert("Movie added to favourites"); //alerting the user that the movie has been added to favourites
+}
+
+function removefromfav()
+{
+    let movieArr = JSON.parse(localStorage.getItem("movie")) || []; //getting the movie data from local storage or initializing it to an empty array if it doesn't exist
+    movieArr = movieArr.filter((movie) => movie.imdbID !== jsonData.imdbID); //filtering out the movie to be removed from the array
+    //movieArr = movieArr.filter((movie) => movie.imdbID !== jsonData.imdbID); //filtering out the movie to be removed from the array
+    localStorage.setItem("movie", JSON.stringify(movieArr)); //storing the updated movie data in local storage
+ //   localStorage.setItem("movie", JSON.stringify(jsonData)); //storing the movie data in local storage
+    alert("Movie removed from favourites"); //alerting the user that the movie has been removed from favourites
+}
+
+
+document.addEventListener("keypress",(e)=>{
+    if (e.key === "Enter") {
+    searchButton.click(); //triggering the click event of the search button when the Enter key is pressed
+    }
+}
+);
+
+function createCard(jsonData ,infav = false) {
+
+    let div = document.createElement("div"); //creating a new div element to display the movie data
+    div.classList.add("moviecard")       //adding a class to the div element for styling..
+ div.innerHTML=`
+          <img src=${jsonData.Poster} alt="">
+          <div class="cardText">     <!-- adding a class to the div element for styling.. -->
+              <h1>${jsonData.Title}</h1>
+               <p class ="rating" >Ratings :<span>${jsonData.Ratings[0].Value}</p>   <!--/getting the rating value from the API response -->
+               <a href="">${jsonData.Genre}</a><br>  
+                <p>Released Date :<span>${jsonData.Released}</span></p>
+                <p>Writer :<span>${jsonData.Writer}</span></p>
+                <p>Description :<span>${jsonData.Plot}</span></p>
+                <p>Total Time :<span>${jsonData.Runtime}</span></p>
+                <p>Released Year : <span>${jsonData.Year}</span></p> 
+
+                ${infav ? `<button  onClick="removefromfav()" id ="favBtn"> Remove from favourite </button>` : `<button  onClick="addtofav()" id ="favBtn"> Add to favourite </button>`}
+               
+               
+                <!--checking if the movie is in favourites and displaying the appropriate button -->
+                
+                
+        
+            
+ 
+    </div>
+ `
+ document.querySelector(".card").appendChild(div) ; //appending the new div element to the card class in the HTML document
+}
+
+favourites.addEventListener("click", function () 
+{
+ 
+    const favmovies = JSON.parse(localStorage.getItem("movie")) || []; //getting the movie data from local storage or initializing it to an empty array if it doesn't exist
+    console.log(favmovies); //logging the movie data to the console
+    document.querySelector(".card").innerHTML = ""; //clearing the previous search results  
+    favmovies.forEach((movie) => {
+        createCard(movie , true); //calling the createCard function to display the movie data
+    });
+    //creating a new div element to display the movie data
+
+
+
+})
